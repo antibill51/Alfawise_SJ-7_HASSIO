@@ -1,0 +1,80 @@
+type: custom:vertical-stack-in-card
+cards:
+  - type: picture-entity
+    entity: switch.schedule_lave_linge
+    image: /local/diffuseur.png
+    show_state: false
+    show_name: false
+    tap_action:
+      action: none
+    hold_action:
+      action: none
+  - type: entities
+    entities:
+      - entity: fan.alfawise_sj_7_fan
+        type: custom:fan-percent-button-row
+        name: Diffuser
+        state_color: true
+        isTwoSpeedFan: true
+        customSetpoints: true
+        reverseButtons: true
+        sendStateWithSpeed: false
+        lowPercentage: 50
+        hiPercentage: 100
+        width: 35px
+        height: 35px
+      - type: custom:paper-buttons-row
+        buttons:
+          - layout: icon|name
+            icon: mdi:clock-time-two
+            name: Timer
+            style:
+              button:
+                width: 150%
+                justify-content: left
+            tap_action:
+              action: none
+          - entity: switch.alfawise_timer_1h
+            layout: name
+            name: 1H
+            style:
+              button:
+                width: 17%
+          - entity: switch.alfawise_timer_3h
+            layout: name
+            name: 3H
+            style:
+              button:
+                width: 17%
+          - entity: switch.alfawise_timer_6h
+            layout: name
+            name: 6H
+            style:
+              button:
+                width: 17%
+      - type: custom:paper-buttons-row
+        buttons:
+          - layout: icon|name
+            icon: mdi:lightbulb
+            name: Light
+            style:
+              button:
+                width: 150%
+                justify-content: left
+            tap_action:
+              action: none
+          - entity: switch.alfawise_lava_lamp
+            layout: icon
+            style:
+              button:
+                width: 15%
+          - entity: switch.alfawise_rainbow_slow
+            layout: icon
+            style:
+              button:
+                width: 15%
+          - entity: switch.alfawise_rainbow_fast
+            layout: icon
+            style:
+              button:
+                width: 15%
