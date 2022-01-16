@@ -26,6 +26,9 @@ Lovelace card screenshot :
 
 ![alt text](https://raw.githubusercontent.com/antibill51/Alfawise_SJ-7_HASSIO/master/Lovelace/lovelace_card_example.png)
 
+## Original firmware
+I have put a backup of the original firmware, and I also modified the AMA HOME APK but only for reconnect the original firmware to Wifi, ssg360 seems down.
+
 ## Contributions are welcome!
 
 If you want to contribute to this please read the [Contribution guidelines](CONTRIBUTING.md)
