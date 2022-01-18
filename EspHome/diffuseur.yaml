@@ -46,7 +46,7 @@ logger:
   esp8266_store_log_strings_in_flash: False
 
 ota:
-  password: "4383db807c86ea7c3e24c428b63ea00a"
+  password: "xxx"
 
 uart:
   id: uart_bus
