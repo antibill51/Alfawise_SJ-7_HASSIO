@@ -1,3 +1,5 @@
+If you like this project consider buying me a pizza 🍕 <a href="https://paypal.me/remikira" target="_blank"><img src="https://img.shields.io/static/v1?logo=paypal&label=&message=donate&color=slategrey"></a>
+
 ---
 title: Alfawise SJ-7
 date-published: 2021-01-18
