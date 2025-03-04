@@ -53,10 +53,10 @@ substitutions:
   friendly_name: "alfawise SJ-7"
 
 # ! (START) VALUES TO CHANGE ! 
-  ota_password: xxx
-  wifi_ssid: xxx
-  wifi_password: xxx
+  wifi_ssid: !secret wifi_ssid
+  wifi_password: !secret wifi_password
   ap_password: "xxx"
+  ota_password: xxx
 # ! (END) VALUES TO CHANGE ! 
 
   #commands
@@ -218,11 +218,6 @@ sensor:
     name: ${name} signal
     update_interval: 60s
     accuracy_decimals: 0
-  # # Free Heap sensor
-  # - platform: debug
-  #   free:
-  #     name: ${name} Free Heap
-
 
 output:
   - platform: fake_fan_output
@@ -268,12 +263,6 @@ switch:
         - uart.write: [0x55, 0xaa, 0x03, 0x0e, 0x00, 0x00, 0x10]
     turn_off_action:
       then:
-        - if:
-            condition:
-              and:
-                - fan.is_on: ${name}_fan
-            then:
-              - uart.write: [0x55, 0xaa, 0x03, 0x0e, 0x00, 0x00, 0x10]
         - uart.write: [0x55, 0xaa, 0x03, 0x0e, 0x00, 0x00, 0x10]
   - platform: template
     id: timer3h
@@ -314,12 +303,6 @@ switch:
         - uart.write: [0x55, 0xaa, 0x03, 0x0e, 0x00, 0x00, 0x10]
     turn_off_action:
       then:
-        - if:
-            condition:
-              and:
-                - fan.is_on: ${name}_fan
-            then:
-              - uart.write: [0x55, 0xaa, 0x03, 0x0e, 0x00, 0x00, 0x10]
         - uart.write: [0x55, 0xaa, 0x03, 0x0e, 0x00, 0x00, 0x10]
   - platform: template
     id: timer6h
@@ -360,12 +343,6 @@ switch:
         - uart.write: [0x55, 0xaa, 0x03, 0x0e, 0x00, 0x00, 0x10]
     turn_off_action:
       then:
-        - if:
-            condition:
-              and:
-                - fan.is_on: ${name}_fan
-            then:
-              - uart.write: [0x55, 0xaa, 0x03, 0x0e, 0x00, 0x00, 0x10]
         - uart.write: [0x55, 0xaa, 0x03, 0x0e, 0x00, 0x00, 0x10]
   - platform: template
     id: power_high
@@ -462,7 +439,6 @@ switch:
         return {};
       }
     turn_on_action:
-      - uart.write: [0x55, 0xaa, 0x03, 0x02, 0x00, 0x01, 0x05]
       - uart.write: [0x55, 0xaa, 0x03, 0x02, 0x01, 0x01, 0x06]
     turn_off_action:
       - uart.write: [0x55, 0xaa, 0x03, 0x02, 0x00, 0x01, 0x05]
@@ -500,7 +476,6 @@ switch:
         return {};
       }
     turn_on_action:
-      - uart.write: [0x55, 0xaa, 0x03, 0x02, 0x00, 0x01, 0x05]
       - uart.write: [0x55, 0xaa, 0x03, 0x0c, 0x01, 0x00, 0x0f]
     turn_off_action:
       - uart.write: [0x55, 0xaa, 0x03, 0x02, 0x00, 0x01, 0x05]
@@ -538,7 +513,6 @@ switch:
         return {};
       }
     turn_on_action:
-      - uart.write: [0x55, 0xaa, 0x03, 0x02, 0x00, 0x01, 0x05]
       - uart.write: [0x55, 0xaa, 0x03, 0x0c, 0x03, 0x00, 0x11]
     turn_off_action:
       - uart.write: [0x55, 0xaa, 0x03, 0x02, 0x00, 0x01, 0x05]
@@ -610,8 +584,6 @@ fan:
                   id: ${name}_fan
                   speed: 1
               - switch.turn_on: power_low
-              # - delay: 500ms
-              # - switch.turn_on: timer1h
             else:
               - if:
                   condition:
