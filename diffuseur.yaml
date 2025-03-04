@@ -64,14 +64,14 @@ uart:
   rx_pin: GPIO3
   baud_rate: 9600
   stop_bits: 1
-  debug:
-    direction: BOTH
-    dummy_receiver: false
-    after:
-      delimiter: "\n"
-      bytes: 256
-    sequence:
-      - lambda: UARTDebug::log_hex(direction, bytes, ':');
+  # debug:
+  #   direction: BOTH
+  #   dummy_receiver: false
+  #   after:
+  #     delimiter: "\n"
+  #     bytes: 256
+  #   sequence:
+  #     - lambda: UARTDebug::log_hex(direction, bytes, ':');
 
 wifi:
   ssid: ${wifi_ssid}
