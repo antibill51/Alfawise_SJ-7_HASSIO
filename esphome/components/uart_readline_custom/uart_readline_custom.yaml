@@ -1,0 +1,4 @@
+name: "UART ReadLine Sensor"
+requirements:
+  - uart
+libraries: []

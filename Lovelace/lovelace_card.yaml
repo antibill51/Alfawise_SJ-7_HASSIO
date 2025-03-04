@@ -2,13 +2,17 @@ type: custom:vertical-stack-in-card
 cards:
   - type: picture-entity
     entity: switch.schedule_lave_linge
-    image: /local/diffuseur.png
+    image: /local/ressources/diffuseur/diffuseur.png
     show_state: false
     show_name: false
     tap_action:
       action: none
     hold_action:
       action: none
+    style: |
+      ha-card {
+        border: none;
+      }
   - type: entities
     entities:
       - entity: fan.alfawise_sj_7_fan
@@ -78,3 +82,8 @@ cards:
             style:
               button:
                 width: 15%
+    style: |
+      ha-card {
+        border: none;
+        margin-top: -2%;
+      }

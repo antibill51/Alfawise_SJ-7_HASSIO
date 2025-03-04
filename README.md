@@ -11,6 +11,9 @@ standard: global
 
 ![alt text](https://github.com/antibill51/Alfawise_SJ-7_HASSIO/blob/master/Lovelace/Ressource/config/www/diffuseur.png)
 
+## Updated for ESPHOME 2025.2.0 and later
+https://esphome.io/guides/contributing#a-note-about-custom-components
+
 ## Working
 
 - All essential oil diffuser related controls (ON/OFF; LOW/HIGH; Timer 1H/3H/6H).
@@ -37,12 +40,26 @@ You can use the ESPHome add-on from Home Assistant Community Add-ons
 ## Basic Configuration
 
 ```yaml
-# Basic Config
+external_components:
+  - source: github://antibill51/Alfawise_SJ-7_HASSIO/esphome
+
+# external_components:
+#   - source:
+#       type: local
+#       path: custom_components
+
 substitutions:
   name: alfawise
   friendly_name: "alfawise SJ-7"
 
-#commands
+# ! (START) VALUES TO CHANGE ! 
+  ota_password: xxx
+  wifi_ssid: xxx
+  wifi_password: xxx
+  ap_password: "xxx"
+# ! (END) VALUES TO CHANGE ! 
+
+  #commands
   receive_timer1h: "55:AA:03:1F:09:01:2B"
   receive_timer3h: "55:AA:03:1F:09:02:2C"
   receive_timer6h: "55:AA:03:1F:09:03:2D"
@@ -60,9 +77,6 @@ substitutions:
 
 esphome:
   name: ${name}
-  includes:
-    - uart_read_line_sensor.h
-    - fake_fan_output.h
 
   on_boot:
     priority: -100.0
@@ -77,14 +91,14 @@ esphome:
 esp8266:
   board: esp01_1m
 debug:
-# Enable logging
 logger:
   baud_rate: 0
   level: debug
   esp8266_store_log_strings_in_flash: False
 
 ota:
-  password: "xxx"
+  - platform: esphome  
+    password: ${ota_password}
 
 uart:
   id: uart_bus
@@ -92,23 +106,23 @@ uart:
   rx_pin: GPIO3
   baud_rate: 9600
   stop_bits: 1
-#  debug:
-#    direction: BOTH
-#    dummy_receiver: false
-#    after:
-#      delimiter: "\n"
-#      bytes: 256
-#    sequence:
-#      - lambda: UARTDebug::log_hex(direction, bytes, ':');
+  debug:
+    direction: BOTH
+    dummy_receiver: false
+    after:
+      delimiter: "\n"
+      bytes: 256
+    sequence:
+      - lambda: UARTDebug::log_hex(direction, bytes, ':');
 
 wifi:
-  ssid: "xxx"
-  password: "xxx"
+  ssid: ${wifi_ssid}
+  password: ${wifi_password}
 
   # Enable fallback hotspot (captive portal) in case wifi connection fails
   ap:
     ssid: "${friendly_name} Fallback Hotspot"
-    password: "xxx"
+    password: ${ap_password}
 api:
 web_server:
   port: 80
@@ -123,69 +137,63 @@ time:
       # Every 1 seconds
       - seconds: /1
         then:
-        - if:
-            condition:
-              and:
-                - switch.is_off: power_low
-                - switch.is_off: power_high
-                - fan.is_on: ${name}_fan
-            then:
-              - switch.turn_on: update_fan_speed
-            else:
-              - if:
-                  condition:
-                    and:
-                      - switch.is_on: power_low
-                      - switch.is_off: power_high
-                      - or:
-                        - lambda: |-
-                            if (id(${name}_fan).speed == 2) {
-                              return true;
-                            }else{
-                              return false;
-                            }
-                          
-                        - lambda: |-
-                            if (id(${name}_fan).speed == 0) {
-                              return true;
-                            }else {
-                              return false;
-                            }
-                  then:
-                    - switch.turn_on: update_fan_speed
-                  else:
-                    - if:
-                        condition:
-                          and:
-                            - switch.is_off: power_low
-                            - switch.is_on: power_high
-                            - or:
-                              - lambda: |-
-                                  if (id(${name}_fan).speed ==1) {
-                                    return true;
-                                  }else {
-                                    return false;
-                                  }
-                              - lambda: |-
-                                  if (id(${name}_fan).speed == 0) {
-                                    return true;
-                                  }else {
-                                    return false;
-                                  }
-                        then:
-                          - switch.turn_on: update_fan_speed
-              
+          - if:
+              condition:
+                and:
+                  - switch.is_off: power_low
+                  - switch.is_off: power_high
+                  - fan.is_on: ${name}_fan
+              then:
+                - switch.turn_on: update_fan_speed
+              else:
+                - if:
+                    condition:
+                      and:
+                        - switch.is_on: power_low
+                        - switch.is_off: power_high
+                        - or:
+                            - lambda: |-
+                                if (id(${name}_fan).speed == 2) {
+                                  return true;
+                                }else{
+                                  return false;
+                                }
+                            - lambda: |-
+                                if (id(${name}_fan).speed == 0) {
+                                  return true;
+                                }else {
+                                  return false;
+                                }
+                    then:
+                      - switch.turn_on: update_fan_speed
+                    else:
+                      - if:
+                          condition:
+                            and:
+                              - switch.is_off: power_low
+                              - switch.is_on: power_high
+                              - or:
+                                  - lambda: |-
+                                      if (id(${name}_fan).speed ==1) {
+                                        return true;
+                                      }else {
+                                        return false;
+                                      }
+                                  - lambda: |-
+                                      if (id(${name}_fan).speed == 0) {
+                                        return true;
+                                      }else {
+                                        return false;
+                                      }
+                          then:
+                            - switch.turn_on: update_fan_speed
+
 # Text sensors with UART received information.
 text_sensor:
-  - platform: custom
-    lambda: |-
-      auto uart_readline = new UartReadLineSensor(id(uart_bus));
-      App.register_component(uart_readline);
-      return {uart_readline};
-    text_sensors:
-      id: "uart_readline"
-      name: ${name} serial
-
+  - platform: uart_readline_custom
+    id: uart_readline
+    name: ${name} serial
+    uart_id: uart_bus
   - platform: wifi_info
     ip_address:
       name: ${name} ip
@@ -200,7 +208,7 @@ sensor:
   # Uptime sensor
   - platform: uptime
     name: ${name} uptime
-    unit_of_measurement: days
+    unit_of_measurement: d
     update_interval: 300s
     accuracy_decimals: 1
     filters:
@@ -210,7 +218,15 @@ sensor:
     name: ${name} signal
     update_interval: 60s
     accuracy_decimals: 0
+  # # Free Heap sensor
+  # - platform: debug
+  #   free:
+  #     name: ${name} Free Heap
 
+
+output:
+  - platform: fake_fan_output
+    id: fanoutput
 
 switch:
   - platform: template
@@ -222,7 +238,7 @@ switch:
     assumed_state: false
     lambda: |-
       if (id(uart_readline).state == "${receive_timer1h}") {
-        return true;        
+        return true;
       } else if(id(uart_readline).state == "${receive_timer3h}") {
         return false;
       } else if(id(uart_readline).state == "${receive_timer6h}") {
@@ -235,7 +251,7 @@ switch:
         return false;
       } else {
         return {};
-      }   
+      }
     turn_on_action:
       then:
         - if:
@@ -250,8 +266,15 @@ switch:
         - uart.write: [0x55, 0xAA, 0x03, 0x09, 0x01, 0x00, 0x0c]
         - delay: 1h
         - uart.write: [0x55, 0xaa, 0x03, 0x0e, 0x00, 0x00, 0x10]
-
-
+    turn_off_action:
+      then:
+        - if:
+            condition:
+              and:
+                - fan.is_on: ${name}_fan
+            then:
+              - uart.write: [0x55, 0xaa, 0x03, 0x0e, 0x00, 0x00, 0x10]
+        - uart.write: [0x55, 0xaa, 0x03, 0x0e, 0x00, 0x00, 0x10]
   - platform: template
     id: timer3h
     name: ${name} Timer 3H
@@ -261,7 +284,7 @@ switch:
     assumed_state: false
     lambda: |-
       if (id(uart_readline).state == "${receive_timer3h}") {
-        return true;        
+        return true;
       } else if(id(uart_readline).state == "${receive_timer1h}") {
         return false;
       } else if(id(uart_readline).state == "${receive_timer6h}") {
@@ -274,7 +297,7 @@ switch:
         return false;
       } else {
         return {};
-      }  
+      }
     turn_on_action:
       then:
         - if:
@@ -296,9 +319,8 @@ switch:
               and:
                 - fan.is_on: ${name}_fan
             then:
-              - uart.write: [0x55, 0xAA, 0x03, 0x09, 0x01, 0x00, 0x0c]
-
-
+              - uart.write: [0x55, 0xaa, 0x03, 0x0e, 0x00, 0x00, 0x10]
+        - uart.write: [0x55, 0xaa, 0x03, 0x0e, 0x00, 0x00, 0x10]
   - platform: template
     id: timer6h
     name: ${name} Timer 6H
@@ -308,7 +330,7 @@ switch:
     assumed_state: false
     lambda: |-
       if (id(uart_readline).state == "${receive_timer6h}") {
-        return true;     
+        return true;
       } else if(id(uart_readline).state == "${receive_timer1h}") {
         return false;
       } else if(id(uart_readline).state == "${receive_timer3h}") {
@@ -321,9 +343,9 @@ switch:
         return false;
       } else {
         return {};
-      }  
+      }
     turn_on_action:
-     then:
+      then:
         - if:
             condition:
               and:
@@ -336,7 +358,6 @@ switch:
         - uart.write: [0x55, 0xAA, 0x03, 0x09, 0x03, 0x00, 0x0e]
         - delay: 6h
         - uart.write: [0x55, 0xaa, 0x03, 0x0e, 0x00, 0x00, 0x10]
-        
     turn_off_action:
       then:
         - if:
@@ -344,9 +365,8 @@ switch:
               and:
                 - fan.is_on: ${name}_fan
             then:
-              - uart.write: [0x55, 0xAA, 0x03, 0x09, 0x01, 0x00, 0x0c]
-
-
+              - uart.write: [0x55, 0xaa, 0x03, 0x0e, 0x00, 0x00, 0x10]
+        - uart.write: [0x55, 0xaa, 0x03, 0x0e, 0x00, 0x00, 0x10]
   - platform: template
     id: power_high
     icon: mdi:fan
@@ -366,12 +386,11 @@ switch:
         return false;
       } else {
         return {};
-      }    
+      }
     turn_on_action:
       - uart.write: [0x55, 0xAA, 0x03, 0x07, 0x02, 0x00, 0x0B]
     turn_off_action:
       - uart.write: [0x55, 0xaa, 0x03, 0x07, 0x00, 0x00, 0x09]
-
     on_turn_on:
       - switch.template.publish:
           id: power_low
@@ -380,7 +399,7 @@ switch:
       - switch.template.publish:
           id: power_low
           state: OFF
-          
+
   - platform: template
     disabled_by_default: true
     id: power_low
@@ -398,13 +417,11 @@ switch:
         return false;
       } else {
         return {};
-      }    
+      }
     turn_on_action:
       - uart.write: [0x55, 0xaa, 0x03, 0x07, 0x01, 0x00, 0x0A]
-
     turn_off_action:
       - uart.write: [0x55, 0xaa, 0x03, 0x07, 0x00, 0x00, 0x09]
-
     on_turn_on:
       - switch.template.publish:
           id: power_high
@@ -424,7 +441,6 @@ switch:
       - uart.write: [0x55, 0xaa, 0x03, 0x03, 0x03, 0x00, 0x08]
     turn_off_action:
       - uart.write: [0x55, 0xaa, 0x03, 0x03, 0x01, 0x00, 0x06]
-      
   - platform: template
     name: ${name} Lava Lamp
     id: lava_lamp
@@ -444,7 +460,7 @@ switch:
         return false;
       } else {
         return {};
-      }  
+      }
     turn_on_action:
       - uart.write: [0x55, 0xaa, 0x03, 0x02, 0x00, 0x01, 0x05]
       - uart.write: [0x55, 0xaa, 0x03, 0x02, 0x01, 0x01, 0x06]
@@ -464,7 +480,7 @@ switch:
       - switch.template.publish:
           id: rainbow_slow
           state: OFF
-    
+
   - platform: template
     name: ${name} Rainbow Slow
     id: rainbow_slow
@@ -482,14 +498,12 @@ switch:
         return false;
       } else {
         return {};
-      }  
+      }
     turn_on_action:
       - uart.write: [0x55, 0xaa, 0x03, 0x02, 0x00, 0x01, 0x05]
       - uart.write: [0x55, 0xaa, 0x03, 0x0c, 0x01, 0x00, 0x0f]
-
     turn_off_action:
       - uart.write: [0x55, 0xaa, 0x03, 0x02, 0x00, 0x01, 0x05]
-
     on_turn_on:
       - switch.template.publish:
           id: rainbow_fast
@@ -504,7 +518,6 @@ switch:
       - switch.template.publish:
           id: lava_lamp
           state: OFF
-
 
   - platform: template
     name: ${name} Rainbow Fast
@@ -523,15 +536,12 @@ switch:
         return false;
       } else {
         return {};
-      }  
+      }
     turn_on_action:
       - uart.write: [0x55, 0xaa, 0x03, 0x02, 0x00, 0x01, 0x05]
       - uart.write: [0x55, 0xaa, 0x03, 0x0c, 0x03, 0x00, 0x11]
-
     turn_off_action:
       - uart.write: [0x55, 0xaa, 0x03, 0x02, 0x00, 0x01, 0x05]
-
-          
     on_turn_on:
       - switch.template.publish:
           id: lava_lamp
@@ -583,23 +593,12 @@ switch:
                               speed: 2
         - switch.turn_off: update_fan_speed
 
-
-output:
-  - platform: custom
-    type: float
-    outputs:
-      id: fanoutput
-    lambda: |-
-      auto ${name}_fan = new FakeFanOutput();
-      App.register_component(${name}_fan);
-      return {${name}_fan};
-
-
 fan:
   - platform: speed
     output: fanoutput
     id: ${name}_fan
     name: "${friendly_name} Fan"
+
     speed_count: 2
     on_turn_on:
       then:
@@ -611,8 +610,8 @@ fan:
                   id: ${name}_fan
                   speed: 1
               - switch.turn_on: power_low
-              - delay: 500ms
-              - switch.turn_on: timer1h
+              # - delay: 500ms
+              # - switch.turn_on: timer1h
             else:
               - if:
                   condition:
@@ -646,8 +645,8 @@ fan:
               and:
                 - lambda: return (id(${name}_fan).speed == 0);
                 - or:
-                  - switch.is_on: power_low
-                  - switch.is_on: power_high
+                    - switch.is_on: power_low
+                    - switch.is_on: power_high
             then:
               - switch.turn_off: power_high
               - switch.turn_off: power_low
@@ -657,14 +656,14 @@ fan:
                     - lambda: return (id(${name}_fan).speed == 1);
                     - switch.is_off: power_low
                   then:
-                    - switch.turn_on: power_low   
+                    - switch.turn_on: power_low
                   else:
                     - if:
                         condition:
                           - lambda: return (id(${name}_fan).speed == 2);
                           - switch.is_off: power_high
                         then:
-                          - switch.turn_on: power_high 
+                          - switch.turn_on: power_high
               - if:
                   condition:
                     and:
@@ -674,156 +673,21 @@ fan:
                   then:
                     - delay: 500ms
                     - switch.turn_on: timer1h
-    
 captive_portal:
 ```
-## fake_fan_output.h
-```c
-#include "esphome.h"
-using namespace esphome;
-
-class FakeFanOutput : public Component, public FloatOutput {
-  public:
-    void write_state(float state) override {
-      if (state < 0.1) {
-        // OFF
-        
-      } else if (state < 0.5) {
-        // low speed
-         
-      } else {
-        // high speed
-         
-      }
-    }
-};
+## External components
+Use the default config :
 ```
-## uart_read_line_sensor.h
-```c
-#include "esphome.h"
-
-
-
-static int pos = 0;
-char outputBuffer[3];
-const int max_line_length = 80;
-static char buffer[max_line_length];
-int j = 0;
-int startMarker = 0x55;
-int secondMarker = 0xAA;
-int timeOut = 50;
-bool receiveUntilTimeout;
-bool valuesending = false;
-int timeReceived;
-
-class UartReadLineSensor : public Component, public UARTDevice, public TextSensor {
- public:
-  UartReadLineSensor(UARTComponent *parent) : UARTDevice(parent) {}
-
-
-// Helper function for converting byte value to 2-digit hex string
-  void byte2HexStr(byte val, char* outputBuffer){
-
-    const char HEX_DIGITS[17] = "0123456789ABCDEF";
-
-    byte upper_nibble_index = (val & 0xf0) >> 4;
-    byte lower_nibble_index = val & 0xf;
-
-    outputBuffer[0] = HEX_DIGITS[upper_nibble_index];
-    outputBuffer[1] = HEX_DIGITS[lower_nibble_index];
-    outputBuffer[2] = '\0';
-  }
-
-
-  void setup() override {
-    // nothing to do here
-  }
-
-  int sendvalue(char* buffer, bool valuesending)
-  {
-    valuesending = true;
-    std::string myStrObject;
-    myStrObject = "";
-    // buffer size
-    for(int i = max_line_length; i > 0; i--) {
-      if (j == 0) {
-        if (buffer[i] > 0 ) {
-          j = i + 1;
-          break;
-        }
-      }
-    }
-    // convert to hex
-    for(int i = 0; i < j; i++) {
-      byte2HexStr(buffer[i], outputBuffer);
-      myStrObject += outputBuffer;
-      // add separator except for the last element
-      if(i < j - 1) {
-        myStrObject += ":";
-      }
-    }
-    // publish result
-    publish_state(myStrObject.c_str());
-    // reset var
-    j = 0;
-    pos = 0;
-    for( int i = 0; i < max_line_length + 1;  ++i )
-    buffer[i] = (char)0;
-    valuesending = false;
-    return 1;
-  }
-
-  // Store values
-  int storevalue(char* buffer, int readch, bool UntilTimeout, bool valuesending)
-  {
-    while (valuesending == true) {
-      delay(200);
-    }
-    buffer[pos++] = readch;
-    buffer[pos] = 0;
-    if (UntilTimeout) {
-      receiveUntilTimeout = true;
-    }
-    timeReceived = millis();
-    return 1;
-  }
-
-  void loop() override {
-    int readch;
-    if (available() >= 1 && !receiveUntilTimeout) {
-      readch = Serial.read();
-      if (readch == startMarker) {
-        storevalue(buffer, readch, true, valuesending);
-      }
-    }
-    if (receiveUntilTimeout) {
-      if (Serial.available() > 0)
-      {
-        readch = Serial.read();
-        if (readch == startMarker) {
-          sendvalue(buffer,valuesending);
-        }
-        if (readch == secondMarker) {
-          if (pos > 1 ) {
-            sendvalue(buffer,valuesending);
-            storevalue(buffer, 0x55, false, valuesending);
-          }
-        } 
-        storevalue(buffer, readch, false, valuesending);
-      }
-      else //Serial.available == 0 and nothing to read
-      {
-        if (millis() - timeReceived >= timeOut)
-        {
-          receiveUntilTimeout = false;
-          sendvalue(buffer,valuesending);
-        }
-      }     
-    }
-  }
-};
+external_components:
+  - source: github://antibill51/Alfawise_SJ-7_HASSIO/esphome
 ```
-
+Or place the "components" folder with its contents in the same folder as the .yaml file. (example: config/esphome/components) and use that :
+```
+external_components:
+  - source:
+      type: local
+      path: components
+```
 # Home Assistant integration
 ## Lovelace card
 
@@ -839,13 +703,17 @@ type: custom:vertical-stack-in-card
 cards:
   - type: picture-entity
     entity: switch.schedule_lave_linge
-    image: /local/diffuseur.png
+    image: /local/ressources/diffuseur/diffuseur.png
     show_state: false
     show_name: false
     tap_action:
       action: none
     hold_action:
       action: none
+    style: |
+      ha-card {
+        border: none;
+      }
   - type: entities
     entities:
       - entity: fan.alfawise_sj_7_fan
@@ -915,7 +783,11 @@ cards:
             style:
               button:
                 width: 15%
-
+    style: |
+      ha-card {
+        border: none;
+        margin-top: -2%;
+      }
 ```
 
 ## Lovelace card screenshot :
