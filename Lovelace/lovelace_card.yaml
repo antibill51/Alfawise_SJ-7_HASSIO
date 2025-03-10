@@ -1,7 +1,7 @@
 type: custom:vertical-stack-in-card
 cards:
   - type: picture-entity
-    entity: switch.schedule_lave_linge
+    entity: fan.alfawise_sj_7_fan
     image: /local/ressources/diffuseur/diffuseur.png
     show_state: false
     show_name: false
