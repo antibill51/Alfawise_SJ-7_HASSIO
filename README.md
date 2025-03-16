@@ -55,8 +55,8 @@ substitutions:
 # ! (START) VALUES TO CHANGE ! 
   wifi_ssid: !secret wifi_ssid
   wifi_password: !secret wifi_password
-  ap_password: "xxx"
-  ota_password: xxx
+  ap_password: ""
+  ota_password: ""
 # ! (END) VALUES TO CHANGE ! 
 
   #commands
@@ -106,14 +106,14 @@ uart:
   rx_pin: GPIO3
   baud_rate: 9600
   stop_bits: 1
-  # debug:
-  #   direction: BOTH
-  #   dummy_receiver: false
-  #   after:
-  #     delimiter: "\n"
-  #     bytes: 256
-  #   sequence:
-  #     - lambda: UARTDebug::log_hex(direction, bytes, ':');
+  debug:
+    direction: BOTH
+    dummy_receiver: false
+    after:
+      delimiter: "\n"
+      bytes: 256
+    sequence:
+      - lambda: UARTDebug::log_hex(direction, bytes, ':');
 
 wifi:
   ssid: ${wifi_ssid}
@@ -238,8 +238,6 @@ switch:
         return false;
       } else if(id(uart_readline).state == "${receive_timer6h}") {
         return false;
-      } else if(id(uart_readline).state == "${receive_light_off_switch}") {
-        return false;
       } else if(id(uart_readline).state == "${receive_light_diff_off_esp}") {
         return false;
       } else if(id(uart_readline).state == "${receive_diff_off_esp}") {
@@ -251,8 +249,7 @@ switch:
       then:
         - if:
             condition:
-              and:
-                - fan.is_off: ${name}_fan
+              - fan.is_off: ${name}_fan
             then:
               - fan.turn_on:
                   id: ${name}_fan
@@ -278,8 +275,6 @@ switch:
         return false;
       } else if(id(uart_readline).state == "${receive_timer6h}") {
         return false;
-      } else if(id(uart_readline).state == "${receive_light_off_switch}") {
-        return false;
       } else if(id(uart_readline).state == "${receive_light_diff_off_esp}") {
         return false;
       } else if(id(uart_readline).state == "${receive_diff_off_esp}") {
@@ -291,8 +286,7 @@ switch:
       then:
         - if:
             condition:
-              and:
-                - fan.is_off: ${name}_fan
+              - fan.is_off: ${name}_fan
             then:
               - fan.turn_on:
                   id: ${name}_fan
@@ -318,8 +312,6 @@ switch:
         return false;
       } else if(id(uart_readline).state == "${receive_timer3h}") {
         return false;
-      } else if(id(uart_readline).state == "${receive_light_off_switch}") {
-        return false;
       } else if(id(uart_readline).state == "${receive_light_diff_off_esp}") {
         return false;
       } else if(id(uart_readline).state == "${receive_diff_off_esp}") {
@@ -331,8 +323,7 @@ switch:
       then:
         - if:
             condition:
-              and:
-                - fan.is_off: ${name}_fan
+              - fan.is_off: ${name}_fan
             then:
               - fan.turn_on:
                   id: ${name}_fan
@@ -355,8 +346,6 @@ switch:
         return true;
       } else if (id(uart_readline).state == "${receive_diff_on_switch}") {
         return true;
-      } else if(id(uart_readline).state == "${receive_light_off_switch}") {
-        return false;
       } else if(id(uart_readline).state == "${receive_light_diff_off_esp}") {
         return false;
       } else if(id(uart_readline).state == "${receive_diff_off_esp}") {
@@ -386,8 +375,6 @@ switch:
     lambda: |-
       if (id(uart_readline).state == "${receive_low}") {
         return true;
-      } else if(id(uart_readline).state == "${receive_light_off_switch}") {
-        return false;
       } else if(id(uart_readline).state == "${receive_light_diff_off_esp}") {
         return false;
       } else if(id(uart_readline).state == "${receive_diff_off_esp}") {
